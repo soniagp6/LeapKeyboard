@@ -23,6 +23,23 @@ See additional libraries, guides, and examples at:
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Leap Motion JavaScript Sample</title>
+<style type="text/css">
+  #typing {
+    width: 40%;
+    position: fixed;
+    right: 20px;
+    top: 5%;
+  }
+  #output {
+    height: 150px;
+    padding: 15px;
+  }
+  #content {
+    border: 2px solid grey;
+    padding: 15px;
+    height: 400px;
+  }
+</style>
 <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
 <script>
 // Store frame for motion functions
@@ -44,12 +61,7 @@ Leap.loop(controllerOptions, function(frame) {
   // Display Frame object data
   var frameOutput = document.getElementById("frameData");
 
-  var frameString = "Frame ID: " + frame.id  + "<br />"
-                  + "Timestamp: " + frame.timestamp + " &micro;s<br />"
-                  + "Hands: " + frame.hands.length + "<br />"
-                  + "Fingers: " + frame.fingers.length + "<br />"
-                  + "Tools: " + frame.tools.length + "<br />"
-                  + "Gestures: " + frame.gestures.length + "<br />";
+  var frameString = "Fingers: " + frame.fingers.length + "<br />";
 
   // Frame motion factors
   if (previousFrame && previousFrame.valid) {
@@ -75,15 +87,15 @@ Leap.loop(controllerOptions, function(frame) {
 
       handString += "<div style='width:300px; float:left; padding:5px'>";
       handString += "Hand ID: " + hand.id + "<br />";
-      handString += "Type: " + hand.type + " hand" + "<br />";
-      handString += "Direction: " + vectorToString(hand.direction, 2) + "<br />";
-      handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
-      handString += "Grab strength: " + hand.grabStrength + "<br />";
-      handString += "Pinch strength: " + hand.pinchStrength + "<br />";
-      handString += "Confidence: " + hand.confidence + "<br />";
-      handString += "Arm direction: " + vectorToString(hand.arm.direction()) + "<br />";
-      handString += "Arm center: " + vectorToString(hand.arm.center()) + "<br />";
-      handString += "Arm up vector: " + vectorToString(hand.arm.basis[1]) + "<br />";
+      // handString += "Type: " + hand.type + " hand" + "<br />";
+      // handString += "Direction: " + vectorToString(hand.direction, 2) + "<br />";
+      // handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
+      // handString += "Grab strength: " + hand.grabStrength + "<br />";
+      // handString += "Pinch strength: " + hand.pinchStrength + "<br />";
+      // handString += "Confidence: " + hand.confidence + "<br />";
+      // handString += "Arm direction: " + vectorToString(hand.arm.direction()) + "<br />";
+      // handString += "Arm center: " + vectorToString(hand.arm.center()) + "<br />";
+      // handString += "Arm up vector: " + vectorToString(hand.arm.basis[1]) + "<br />";
 
       // Hand motion factors
       if (previousFrame && previousFrame.valid) {
@@ -125,16 +137,17 @@ Leap.loop(controllerOptions, function(frame) {
   if (frame.pointables.length > 0) {
     var fingerTypeMap = ["Thumb", "Index finger", "Middle finger", "Ring finger", "Pinky finger"];
     var boneTypeMap = ["Metacarpal", "Proximal phalanx", "Intermediate phalanx", "Distal phalanx"];
-    for (var i = 0; i < frame.pointables.length; i++) {
+    //for (var i = 0; i < frame.pointables.length; i++) {
+      var i = 1;
       var pointable = frame.pointables[i];
 
       pointableString += "<div style='width:250px; float:left; padding:5px'>";
 
       if (pointable.tool) {
         pointableString += "Pointable ID: " + pointable.id + "<br />";
-        pointableString += "Classified as a tool <br />";
-        pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
-        pointableString += "Width: "  + pointable.width.toFixed(1) + " mm<br />";
+        // pointableString += "Classified as a tool <br />";
+        // pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
+        // pointableString += "Width: "  + pointable.width.toFixed(1) + " mm<br />";
         pointableString += "Direction: " + vectorToString(pointable.direction, 2) + "<br />";
         pointableString += "Tip position: " + vectorToString(pointable.tipPosition) + " mm<br />"
         pointableString += "</div>";
@@ -142,10 +155,10 @@ Leap.loop(controllerOptions, function(frame) {
       else {
         pointableString += "Pointable ID: " + pointable.id + "<br />";
         pointableString += "Type: " + fingerTypeMap[pointable.type] + "<br />";
-        pointableString += "Belongs to hand with ID: " + pointable.handId + "<br />";
-        pointableString += "Classified as a finger<br />";
-        pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
-        pointableString += "Width: "  + pointable.width.toFixed(1) + " mm<br />";
+        // pointableString += "Belongs to hand with ID: " + pointable.handId + "<br />";
+        // pointableString += "Classified as a finger<br />";
+        // pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
+        // pointableString += "Width: "  + pointable.width.toFixed(1) + " mm<br />";
         pointableString += "Direction: " + vectorToString(pointable.direction, 2) + "<br />";
         pointableString += "Extended?: "  + pointable.extended + "<br />";
         pointable.bones.forEach( function(bone){
@@ -157,12 +170,16 @@ Leap.loop(controllerOptions, function(frame) {
         pointableString += "Tip position: " + vectorToString(pointable.tipPosition) + " mm<br />";
         pointableString += "</div>";
       }
-    }
+
+      var outputContainer = document.getElementById("output");
+      outputContainer.innerHTML = curl(pointable.bones[3].direction()[2], pointable.bones[0].direction()[2]);
+    //}
   }
   else {
     pointableString += "<div>No pointables</div>";
   }
   pointableOutput.innerHTML = pointableString;
+
 
   // Display Gesture object data
   var gestureOutput = document.getElementById("gestureData");
@@ -212,6 +229,8 @@ Leap.loop(controllerOptions, function(frame) {
   previousFrame = frame;
 })
 
+
+
 function vectorToString(vector, digits) {
   if (typeof digits === "undefined") {
     digits = 1;
@@ -239,6 +258,30 @@ function pauseForGestures() {
   }
 }
 
+var thresholds = 
+{
+  0.1: false,
+  0.5: false,
+  1: false,
+  1.4: false
+}
+
+function curl(distalPhalanxZ, metacarpalBoneZ) {
+  return distalPhalanxZ - metacarpalBoneZ;
+}
+
+function listenForThreshold() {
+
+}
+
+function hitThreshold() {
+
+}
+
+function fireKey() {
+
+}
+
 </script>
 </head>
 <body>
@@ -257,6 +300,12 @@ function pauseForGestures() {
   <div style="clear:both;"></div>
   <h3>Gesture data:</h3>
   <div id="gestureData"></div>
+</div>
+<div id="typing">
+  <div id="output">
+  </div>
+  <div id="content">
+  </div>
 </div>
 </body>
 </html>
