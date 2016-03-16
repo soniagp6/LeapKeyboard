@@ -9,7 +9,7 @@ gulp.task('styles', function() {
 });
 
 gulp.task('es6to5', function () {
-    return gulp.src('src/js/es6/components/*.js')
+    return gulp.src('src/js/es6/main.js')
         .pipe(babel())
         .pipe(gulp.dest('src/js'));
 });

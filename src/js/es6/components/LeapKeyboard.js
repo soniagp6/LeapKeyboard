@@ -1,5 +1,5 @@
 export default class LeapKeyboard {
 	constructor() {
-		console.log('test');
+		console.log('test 8');
 	}
 }
