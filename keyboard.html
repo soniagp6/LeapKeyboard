@@ -89,7 +89,7 @@ Leap.loop(controllerOptions, function(frame) {
       handString += "Hand ID: " + hand.id + "<br />";
       // handString += "Type: " + hand.type + " hand" + "<br />";
       // handString += "Direction: " + vectorToString(hand.direction, 2) + "<br />";
-      // handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
+      handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
       // handString += "Grab strength: " + hand.grabStrength + "<br />";
       // handString += "Pinch strength: " + hand.pinchStrength + "<br />";
       // handString += "Confidence: " + hand.confidence + "<br />";
@@ -172,7 +172,7 @@ Leap.loop(controllerOptions, function(frame) {
       }
 
       var outputContainer = document.getElementById("output");
-      outputContainer.innerHTML = curl(pointable.bones[3].direction()[2], pointable.bones[0].direction()[2]);
+      outputContainer.innerHTML = lift(pointable.tipPosition[1], hand.palmPosition[1]) + "<br/>" + curl(pointable.tipPosition[2], hand.palmPosition[2]);
     //}
   }
   else {
@@ -258,29 +258,93 @@ function pauseForGestures() {
   }
 }
 
-var thresholds = 
-{
-  0.1: false,
-  0.5: false,
-  1: false,
-  1.4: false
+var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+
+var verticalRange = [10, -70];
+var verticalDistance = 10 - (-70);
+var curlRange = [-80, -20];
+var curlDistance = 60;
+var curlDivisions = 3;
+var verticalDivisions = 9;
+var thresholdDistance = (verticalRange[0] - verticalRange[1])/verticalDivisions;
+var lowestVerticalPoint = parseFloat(verticalRange[0]);
+var prevLowestVerticalPoint = parseFloat(verticalRange[0]);
+var highestVerticalPoint = parseFloat(verticalRange[0]);
+var prevHighestVerticalPoint = parseFloat(verticalRange[0]);
+var readyToFire = true;
+var liftDistance;
+var curveDistance;
+
+
+function lift(pointable, hand) {
+  liftDistance = parseFloat((pointable - hand).toFixed(2));
+  if (readyToFire) {
+    //console.log('ready to fire');
+    prevLowestVerticalPoint = lowestVerticalPoint;
+    lowestVerticalPoint = (liftDistance <= prevLowestVerticalPoint) ? liftDistance : prevLowestVerticalPoint;
+    fireLiftOnDetect(liftDistance);
+  } else {
+    //console.log('NOT ready');
+    prevHighestVerticalPoint = highestVerticalPoint;
+    highestVerticalPoint = (liftDistance >= prevHighestVerticalPoint) ? liftDistance : prevHighestVerticalPoint;
+    checkStatus();
+  }
+  return liftDistance;
 }
 
-function curl(distalPhalanxZ, metacarpalBoneZ) {
-  return distalPhalanxZ - metacarpalBoneZ;
+function checkStatus() {
+  // console.log('lift distance', liftDistance, 'thresholdDistance', thresholdDistance, 'highestVerticalPoint', highestVerticalPoint, 'prevHighestVerticalPoint', prevHighestVerticalPoint);
+  if (liftDistance <= (highestVerticalPoint - thresholdDistance)) {
+    readyToFire = true;
+  }
+};
+
+function curl(pointable, hand) {
+  curveDistance = (pointable - hand).toFixed(2);
+  return curveDistance;
 }
 
-function listenForThreshold() {
+function fireLiftOnDetect(liftDistance) {
+  // console.log('lift distance', liftDistance, 'thresholdDistance', thresholdDistance, 'lowestVerticalPoint', lowestVerticalPoint, 'prevLowestVerticalPoint', prevLowestVerticalPoint);
+  if ((liftDistance - lowestVerticalPoint) > thresholdDistance) {
+    fireLift();
+    resetVerticalPoints();
+  }
+}
+
+function fireLift() {
+  var pos = getBracket() + getCurlBracket();
+  currentLetter = alphabet[pos];
+  console.log('letter', currentLetter);
 
 }
 
-function hitThreshold() {
-
+function getBracket() {
+  var positionLinear = (verticalRange[0] - lowestVerticalPoint)/verticalDistance;
+  var inlinePosition = Math.floor(positionLinear * alphabet.length);
+  var positionBracket = (Math.round(inlinePosition/curlDivisions))*curlDivisions;
+  console.log('positionBracket', positionBracket);
+  return positionBracket;
 }
 
-function fireKey() {
-
+function getCurlBracket() {
+  var positionCurl = Math.abs((curlRange[0] - curveDistance)/curlDistance);
+  var curlBracket = Math.floor(positionCurl * curlDivisions);
+  console.log('curl bracket', curlBracket);
+  return curlBracket;
 }
+
+function resetVerticalPoints() {
+  // console.log('reset vertical points');
+  highestVerticalPoint = lowestVerticalPoint;
+  prevHighestVerticalPoint = lowestVerticalPoint;
+  lowestVerticalPoint = verticalRange[0];
+  prevLowestVerticalPoint = verticalRange[0];
+  readyToFire = false;
+}
+
+
+
 
 </script>
 </head>
