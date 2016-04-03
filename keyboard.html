@@ -172,7 +172,7 @@ Leap.loop(controllerOptions, function(frame) {
       }
 
       var outputContainer = document.getElementById("output");
-      outputContainer.innerHTML = lift(pointable.tipPosition[1], hand.palmPosition[1]) + "<br/>" + curl(pointable.tipPosition[2], hand.palmPosition[2]);
+      outputContainer.innerHTML = readFingerPosition(pointable.tipPosition[1], hand.palmPosition[1]);
     //}
   }
   else {
@@ -261,90 +261,86 @@ function pauseForGestures() {
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
 var verticalRange = [20, -60];
-var verticalDistance = verticalRange[0] - (verticalRange[1]);
-var curlRange = [-80, -20];
-var curlDistance = 60;
-var curlDivisions = 3;
-var verticalDivisions = 26;
-var thresholdDistance = (verticalRange[0] - verticalRange[1])/5;
-var lowestVerticalPoint = parseFloat(verticalRange[0]);
-var prevLowestVerticalPoint = parseFloat(verticalRange[0]);
-var highestVerticalPoint = parseFloat(verticalRange[0]);
-var prevHighestVerticalPoint = parseFloat(verticalRange[0]);
-var lastFirePosition;
-var readyToFire = true;
-var liftDistance;
-var curveDistance;
+var verticalDistance = verticalRange[0] - verticalRange[1];
+var triggerInterval = 20;
+var highestPoint;
+var lowestPoint;
+var currentPosition;
+var readyForKeyUp = false;
+var readyForKeyDown = false;
+var lastTenPositions = [];
+var sum;
 
-
-function lift(pointable, hand) {
-  liftDistance = parseFloat((pointable - hand).toFixed(2));
-  if (readyToFire) {
-    //console.log('ready to fire');
-    prevLowestVerticalPoint = lowestVerticalPoint;
-    lowestVerticalPoint = (liftDistance <= prevLowestVerticalPoint) ? liftDistance : prevLowestVerticalPoint;
-    fireLiftOnDetect(liftDistance);
-  } else {
-    //console.log('NOT ready');
-    prevHighestVerticalPoint = highestVerticalPoint;
-    highestVerticalPoint = (liftDistance >= prevHighestVerticalPoint) ? liftDistance : prevHighestVerticalPoint;
-    checkStatus();
+function readFingerPosition(tipPositionY, handPositionY) {
+  currentPositionRead = parseFloat((tipPositionY - handPositionY).toFixed(2));
+  lastTenPositions.push(currentPositionRead);
+  if (lastTenPositions[9]) {
+    lastTenPositions.shift();
   }
-  return liftDistance;
-}
-
-function checkStatus() {
-  console.log('lift distance', liftDistance, 'lastFirePosition', lastFirePosition);
-  if (liftDistance >= (lastFirePosition + thresholdDistance)) {
-    readyToFire = true;
-    console.log('readyToFire');
+  var sum = lastTenPositions.reduce(function(a, b) { return a + b; });
+  currentPosition = sum/lastTenPositions.length;
+  console.log('currentPosition', currentPosition);
+  if (highestPoint && lowestPoint) {
+    setHighestPoint();
+    setLowestPoint();
   }
-};
-
-function curl(pointable, hand) {
-  curveDistance = (pointable - hand).toFixed(2);
-  return curveDistance;
-}
-
-function fireLiftOnDetect(liftDistance) {
-  // console.log('lift distance', liftDistance, 'thresholdDistance', thresholdDistance, 'lowestVerticalPoint', lowestVerticalPoint, 'prevLowestVerticalPoint', prevLowestVerticalPoint);
-  if ((liftDistance - lowestVerticalPoint) > thresholdDistance*.6) {
-    fireLift();
-    resetVerticalPoints();
+  else {
+    reset();
+  }
+  if (readyForKeyDown) {
+    checkForKeyDown();
+  }
+  if (readyForKeyUp) {
+    checkForKeyUp();
   }
 }
 
-function fireLift() {
-  var pos = getBracket();
-  currentLetter = alphabet[pos];
-  console.log('letter', currentLetter);
-
+function setHighestPoint() {
+  highestPoint = (currentPosition >= highestPoint) ? currentPosition : highestPoint;
+  //console.log('highestPoint', highestPoint);
 }
 
-function getBracket() {
-  var positionLinear = (verticalRange[0] - lowestVerticalPoint)/verticalDistance;
+function setLowestPoint() {
+  lowestPoint = (currentPosition <= lowestPoint) ? currentPosition : lowestPoint;
+  console.log('lowestPoint', lowestPoint);
+}
+
+function checkForKeyDown() {
+  if (currentPosition <= highestPoint - triggerInterval) {
+    readyForKeyDown = false;
+    lowestPoint = currentPosition;
+    console.log('KEYDOWN', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
+    readyForKeyUp = true;
+    console.log('readyForKeyUp');
+  }
+}
+
+function checkForKeyUp() {
+  if (currentPosition >= lowestPoint + triggerInterval) {
+    console.log('KEYUP', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
+    sendKey();
+    reset();
+  }
+}
+
+function reset() {
+  readyForKeyUp = false;
+  highestPoint = currentPosition;
+  lowestPoint = currentPosition;
+  readyForKeyDown = true;
+  //console.log('readyForKeyDown');
+  //console.log('reset positinos highest', highestPoint, 'reset positions lowest', lowestPoint);
+}
+
+function sendKey() {
+  var positionLinear = (verticalRange[0] - lowestPoint)/verticalDistance;
   var positionBracket = Math.floor(positionLinear * alphabet.length);
-  //var positionBracket = (Math.round(inlinePosition/curlDivisions))*curlDivisions;
-  //console.log('positionBracket', positionBracket);
-  lastFirePosition = lowestVerticalPoint;
-  return positionBracket;
+  // console.log('highestPoint', highestPoint);
+  // console.log('lowestPoint', lowestPoint);
+  console.log('keypress', alphabet[positionBracket]);
 }
 
-function getCurlBracket() {
-  var positionCurl = Math.abs((curlRange[0] - curveDistance)/curlDistance);
-  var curlBracket = Math.floor(positionCurl * curlDivisions);
-  //console.log('curl bracket', curlBracket);
-  return curlBracket;
-}
 
-function resetVerticalPoints() {
-  // console.log('reset vertical points');
-  highestVerticalPoint = lowestVerticalPoint;
-  prevHighestVerticalPoint = lowestVerticalPoint;
-  lowestVerticalPoint = verticalRange[0];
-  prevLowestVerticalPoint = verticalRange[0];
-  readyToFire = false;
-}
 
 
 
