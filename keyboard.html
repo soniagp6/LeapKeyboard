@@ -260,17 +260,18 @@ function pauseForGestures() {
 
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-var verticalRange = [10, -70];
-var verticalDistance = 10 - (-70);
+var verticalRange = [20, -60];
+var verticalDistance = verticalRange[0] - (verticalRange[1]);
 var curlRange = [-80, -20];
 var curlDistance = 60;
 var curlDivisions = 3;
-var verticalDivisions = 9;
-var thresholdDistance = (verticalRange[0] - verticalRange[1])/verticalDivisions;
+var verticalDivisions = 26;
+var thresholdDistance = (verticalRange[0] - verticalRange[1])/5;
 var lowestVerticalPoint = parseFloat(verticalRange[0]);
 var prevLowestVerticalPoint = parseFloat(verticalRange[0]);
 var highestVerticalPoint = parseFloat(verticalRange[0]);
 var prevHighestVerticalPoint = parseFloat(verticalRange[0]);
+var lastFirePosition;
 var readyToFire = true;
 var liftDistance;
 var curveDistance;
@@ -293,9 +294,10 @@ function lift(pointable, hand) {
 }
 
 function checkStatus() {
-  // console.log('lift distance', liftDistance, 'thresholdDistance', thresholdDistance, 'highestVerticalPoint', highestVerticalPoint, 'prevHighestVerticalPoint', prevHighestVerticalPoint);
-  if (liftDistance <= (highestVerticalPoint - thresholdDistance)) {
+  console.log('lift distance', liftDistance, 'lastFirePosition', lastFirePosition);
+  if (liftDistance >= (lastFirePosition + thresholdDistance)) {
     readyToFire = true;
+    console.log('readyToFire');
   }
 };
 
@@ -306,14 +308,14 @@ function curl(pointable, hand) {
 
 function fireLiftOnDetect(liftDistance) {
   // console.log('lift distance', liftDistance, 'thresholdDistance', thresholdDistance, 'lowestVerticalPoint', lowestVerticalPoint, 'prevLowestVerticalPoint', prevLowestVerticalPoint);
-  if ((liftDistance - lowestVerticalPoint) > thresholdDistance) {
+  if ((liftDistance - lowestVerticalPoint) > thresholdDistance*.6) {
     fireLift();
     resetVerticalPoints();
   }
 }
 
 function fireLift() {
-  var pos = getBracket() + getCurlBracket();
+  var pos = getBracket();
   currentLetter = alphabet[pos];
   console.log('letter', currentLetter);
 
@@ -321,16 +323,17 @@ function fireLift() {
 
 function getBracket() {
   var positionLinear = (verticalRange[0] - lowestVerticalPoint)/verticalDistance;
-  var inlinePosition = Math.floor(positionLinear * alphabet.length);
-  var positionBracket = (Math.round(inlinePosition/curlDivisions))*curlDivisions;
-  console.log('positionBracket', positionBracket);
+  var positionBracket = Math.floor(positionLinear * alphabet.length);
+  //var positionBracket = (Math.round(inlinePosition/curlDivisions))*curlDivisions;
+  //console.log('positionBracket', positionBracket);
+  lastFirePosition = lowestVerticalPoint;
   return positionBracket;
 }
 
 function getCurlBracket() {
   var positionCurl = Math.abs((curlRange[0] - curveDistance)/curlDistance);
   var curlBracket = Math.floor(positionCurl * curlDivisions);
-  console.log('curl bracket', curlBracket);
+  //console.log('curl bracket', curlBracket);
   return curlBracket;
 }
 
