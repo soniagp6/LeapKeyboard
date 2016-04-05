@@ -171,8 +171,7 @@ Leap.loop(controllerOptions, function(frame) {
         pointableString += "</div>";
       }
 
-      var outputContainer = document.getElementById("output");
-      outputContainer.innerHTML = readFingerPosition(pointable.tipPosition[1], hand.palmPosition[1]);
+      readFingerPosition(pointable.tipPosition[1], hand.palmPosition[1]);
     //}
   }
   else {
@@ -260,9 +259,9 @@ function pauseForGestures() {
 
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-var verticalRange = [20, -60];
+var verticalRange = [10, -70];
 var verticalDistance = verticalRange[0] - verticalRange[1];
-var triggerInterval = 20;
+var triggerInterval = 10;
 var highestPoint;
 var lowestPoint;
 var currentPosition;
@@ -270,8 +269,11 @@ var readyForKeyUp = false;
 var readyForKeyDown = false;
 var lastTenPositions = [];
 var sum;
+var outputContainer;
+
 
 function readFingerPosition(tipPositionY, handPositionY) {
+  outputContainer = document.getElementById("content");
   currentPositionRead = parseFloat((tipPositionY - handPositionY).toFixed(2));
   lastTenPositions.push(currentPositionRead);
   if (lastTenPositions[9]) {
@@ -279,7 +281,7 @@ function readFingerPosition(tipPositionY, handPositionY) {
   }
   var sum = lastTenPositions.reduce(function(a, b) { return a + b; });
   currentPosition = sum/lastTenPositions.length;
-  console.log('currentPosition', currentPosition);
+  //console.log('currentPosition', currentPosition);
   if (highestPoint && lowestPoint) {
     setHighestPoint();
     setLowestPoint();
@@ -302,22 +304,22 @@ function setHighestPoint() {
 
 function setLowestPoint() {
   lowestPoint = (currentPosition <= lowestPoint) ? currentPosition : lowestPoint;
-  console.log('lowestPoint', lowestPoint);
+  //console.log('lowestPoint', lowestPoint);
 }
 
 function checkForKeyDown() {
   if (currentPosition <= highestPoint - triggerInterval) {
     readyForKeyDown = false;
     lowestPoint = currentPosition;
-    console.log('KEYDOWN', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
+    //console.log('KEYDOWN', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
     readyForKeyUp = true;
-    console.log('readyForKeyUp');
+    //console.log('readyForKeyUp');
   }
 }
 
 function checkForKeyUp() {
   if (currentPosition >= lowestPoint + triggerInterval) {
-    console.log('KEYUP', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
+    //console.log('KEYUP', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
     sendKey();
     reset();
   }
@@ -337,12 +339,11 @@ function sendKey() {
   var positionBracket = Math.floor(positionLinear * alphabet.length);
   // console.log('highestPoint', highestPoint);
   // console.log('lowestPoint', lowestPoint);
-  console.log('keypress', alphabet[positionBracket]);
+  // console.log('keypress', alphabet[positionBracket]);
+  if (alphabet[positionBracket]) {
+    outputContainer.innerHTML = outputContainer.innerHTML + alphabet[positionBracket];  
+  }
 }
-
-
-
-
 
 
 </script>
