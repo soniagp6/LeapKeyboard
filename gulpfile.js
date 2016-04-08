@@ -1,7 +1,8 @@
 var gulp = require('gulp'),
 	sass = require('gulp-sass'),
     browserify = require('browserify'),
-	babelify = require('babelify');
+	babelify = require('babelify'),
+    source = require('vinyl-source-stream');
 
 gulp.task('styles', function() {
     gulp.src('src/css/sass/**/*.scss')
@@ -24,7 +25,7 @@ gulp.task('es6to5', function () {
     })
     .transform(babelify)
     .bundle()
-    .pipe(source('app.js'))
+    .pipe(source('main.js'))
     .pipe(gulp.dest('src/js'));
 });
 
