@@ -10,12 +10,6 @@ gulp.task('styles', function() {
         .pipe(gulp.dest('src/css'));
 });
 
-// gulp.task('es6to5', function () {
-//     return gulp.src('src/js/es6/main.js')
-//         .pipe(babel())
-//         .pipe(gulp.dest('src/js'));
-// });
-
 gulp.task('es6to5', function () {
   return browserify({
     // Only need initial file, browserify finds the deps
@@ -31,6 +25,6 @@ gulp.task('es6to5', function () {
 
 gulp.task('default',function() {
     gulp.watch('src/css/sass/**/*.scss',['styles']);
-    gulp.watch('src/js/es6/components/*.js',['es6to5']);
+    gulp.watch('src/js/es6/components/**/*.js',['es6to5']);
 });
 
