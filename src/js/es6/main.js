@@ -1,7 +1,6 @@
 // Main application entry point
-import LeapKeyboard from './components/LeapKeyboard';
+import { LeapKeyboard } from './components/LeapKeyboard';
 
 // Instantiate
-window.LeapKeyboard = window.LeapKeyboard || LeapKeyboard;
-
-testFunction();
+//window.LeapKeyboard = window.LeapKeyboard || LeapKeyboard;
+var Keyboard = new LeapKeyboard();

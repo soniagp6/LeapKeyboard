@@ -4,8 +4,8 @@ export default class LeapKeyboard {
 	}
 
 	testFunction() {
-		console.log('test function');
+		console.log('test function 8');
 	}
 }
 
-module.exports = LeapKeyboard;
+export { LeapKeyboard };
