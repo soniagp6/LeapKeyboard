@@ -23,7 +23,8 @@ See additional libraries, guides, and examples at:
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Leap Motion JavaScript Sample</title>
-<style type="text/css">
+<link rel="stylesheet" type="text/css" href="src/css/main.css">
+<!-- <style type="text/css">
   #typing {
     width: 40%;
     position: fixed;
@@ -39,7 +40,7 @@ See additional libraries, guides, and examples at:
     padding: 15px;
     height: 400px;
   }
-</style>
+</style> -->
 <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
 <script>
 // Store frame for motion functions
@@ -259,7 +260,7 @@ function pauseForGestures() {
 
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-var verticalRange = [10, -70];
+var verticalRange = [20, -50];
 var verticalDistance = verticalRange[0] - verticalRange[1];
 var triggerInterval = 10;
 var highestPoint;

@@ -2,7 +2,8 @@
   width: 40%;
   position: fixed;
   right: 20px;
-  top: 5%; }
+  top: 5%;
+  background-color: red; }
 
 #output {
   height: 150px;
