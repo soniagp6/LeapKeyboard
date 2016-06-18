@@ -43,7 +43,7 @@ See additional libraries, guides, and examples at:
 </style> -->
 <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
 <script>
-// Store frame for motion functions
+//Store frame for motion functions
 var previousFrame = null;
 var paused = false;
 var pauseOnGesture = false;
@@ -138,8 +138,7 @@ Leap.loop(controllerOptions, function(frame) {
   if (frame.pointables.length > 0) {
     var fingerTypeMap = ["Thumb", "Index finger", "Middle finger", "Ring finger", "Pinky finger"];
     var boneTypeMap = ["Metacarpal", "Proximal phalanx", "Intermediate phalanx", "Distal phalanx"];
-    //for (var i = 0; i < frame.pointables.length; i++) {
-      var i = 1;
+    for (var i = 0; i < 2; i++) {
       var pointable = frame.pointables[i];
 
       pointableString += "<div style='width:250px; float:left; padding:5px'>";
@@ -172,8 +171,8 @@ Leap.loop(controllerOptions, function(frame) {
         pointableString += "</div>";
       }
 
-      readFingerPosition(pointable.tipPosition[1], hand.palmPosition[1]);
-    //}
+      readFingerPosition(fingerTypeMap[pointable.type], pointable.tipPosition[1], hand.palmPosition[1]);
+    }
   }
   else {
     pointableString += "<div>No pointables</div>";
@@ -271,12 +270,14 @@ var readyForKeyDown = false;
 var lastTenPositions = [];
 var sum;
 var outputContainer;
+var fingerType;
 
 
-function readFingerPosition(tipPositionY, handPositionY) {
+function readFingerPosition(pointableType, tipPositionY, handPositionY) {
   outputContainer = document.getElementById("content");
   currentPositionRead = parseFloat((tipPositionY - handPositionY).toFixed(2));
   lastTenPositions.push(currentPositionRead);
+  fingerType = pointableType;
   if (lastTenPositions[9]) {
     lastTenPositions.shift();
   }
@@ -321,7 +322,13 @@ function checkForKeyDown() {
 function checkForKeyUp() {
   if (currentPosition >= lowestPoint + triggerInterval) {
     //console.log('KEYUP', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
-    sendKey();
+    console.log('t;ype', fingerType);
+    if (fingerType == 'Thumb') {
+      sendSpace();
+    }
+    else {
+      sendKey();
+    }
     reset();
   }
 }
@@ -333,6 +340,10 @@ function reset() {
   readyForKeyDown = true;
   //console.log('readyForKeyDown');
   //console.log('reset positinos highest', highestPoint, 'reset positions lowest', lowestPoint);
+}
+
+function sendSpace() {
+  outputContainer.innerHTML = outputContainer.innerHTML + " ";  
 }
 
 function sendKey() {
