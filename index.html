@@ -41,7 +41,7 @@ See additional libraries, guides, and examples at:
     height: 400px;
   }
 </style> -->
-<script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
+<script src="src/js/vendor/leap-0.6.4.min.js"></script>
 <script>
 //Store frame for motion functions
 var previousFrame = null;
@@ -49,7 +49,9 @@ var paused = false;
 var pauseOnGesture = false;
 
 // Setup Leap loop with frame callback function
-var controllerOptions = {enableGestures: true};
+var controllerOptions = {
+  enableGestures: true
+};
 
 // to use HMD mode:
 // controllerOptions.optimizeHMD = true;
@@ -138,7 +140,7 @@ Leap.loop(controllerOptions, function(frame) {
   if (frame.pointables.length > 0) {
     var fingerTypeMap = ["Thumb", "Index finger", "Middle finger", "Ring finger", "Pinky finger"];
     var boneTypeMap = ["Metacarpal", "Proximal phalanx", "Intermediate phalanx", "Distal phalanx"];
-    for (var i = 0; i < 2; i++) {
+    for (var i = 1; i < 2; i++) {
       var pointable = frame.pointables[i];
 
       pointableString += "<div style='width:250px; float:left; padding:5px'>";
@@ -164,14 +166,17 @@ Leap.loop(controllerOptions, function(frame) {
         pointable.bones.forEach( function(bone){
           pointableString += boneTypeMap[bone.type] + " bone <br />";
           pointableString += "Center: " + vectorToString(bone.center()) + "<br />";
-          pointableString += "Direction: " + vectorToString(bone.direction()) + "<br />";
+          pointableString += "Direction: " + vectorToString(bone.direction(), 2) + "<br />";
           pointableString += "Up vector: " + vectorToString(bone.basis[1]) + "<br />";
         });
         pointableString += "Tip position: " + vectorToString(pointable.tipPosition) + " mm<br />";
         pointableString += "</div>";
       }
 
-      readFingerPosition(fingerTypeMap[pointable.type], pointable.tipPosition[1], hand.palmPosition[1]);
+      //readFingerPosition(fingerTypeMap[pointable.type], pointable.direction[1], pointable.bones[1].direction()[1], pointable.bones[2].direction()[1]);
+      //readFingerPosition(fingerTypeMap[pointable.type], hand.palmPosition[1], pointable.tipPosition[1]);
+      readFingerPosition(fingerTypeMap[pointable.type], pointable.bones[0].direction(), pointable.bones[1].direction(), pointable.bones[2].direction());
+      //readFingerPosition(fingerTypeMap[pointable.type], pointable.bones[0].center(), pointable.bones[1].center(), pointable.bones[2].center());
     }
   }
   else {
@@ -259,9 +264,9 @@ function pauseForGestures() {
 
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-var verticalRange = [20, -50];
-var verticalDistance = verticalRange[0] - verticalRange[1];
-var triggerInterval = 10;
+var verticalRange = [-2.5, .3];
+var verticalDistance = verticalRange[1] - verticalRange[0];
+var triggerInterval = .1//(verticalDistance/alphabet.length)*10;
 var highestPoint;
 var lowestPoint;
 var currentPosition;
@@ -271,11 +276,40 @@ var lastTenPositions = [];
 var sum;
 var outputContainer;
 var fingerType;
+var hypoteneuse;
+var angle1;
+var angle2;
 
-
-function readFingerPosition(pointableType, tipPositionY, handPositionY) {
+function readFingerPosition(pointableType, metacarpalDirection, proximalDirection, intermediateDirection) {
+//function readFingerPosition(pointableType, proximalPosition, intermediatePosition, distalPosition) {
+//function readFingerPosition(pointableType, metacarpalY, intermedialPhalanxY) {
+//function readFingerPosition(pointableType, handPositionY, tipPositionY) {
+//function readFingerPosition(pointableType, pointableDirectionY, proximalPhalanxY, intermedialPhalanxY) {
   outputContainer = document.getElementById("content");
-  currentPositionRead = parseFloat((tipPositionY - handPositionY).toFixed(2));
+  //console.log('metacarpalY', metacarpalY);
+  //currentPositionRead = parseFloat((intermedialPhalanxY - metacarpalY).toFixed(2));
+  //currentPositionRead = parseFloat((tipPositionY - handPositionY).toFixed(2));
+  //currentPositionRead = parseFloat((proximalPhalanxY + intermedialPhalanxY - pointableDirectionY).toFixed(3));
+  //currentPositionRead = parseFloat((intermedialPhalanxY - metacarpalY).toFixed(2));
+  //hypoteneuse = Math.sqrt(Math.pow((intermediatePosition[1] - proximalPosition[1]), 2) + Math.pow((intermediatePosition[2] - proximalPosition[2]), 2));
+  //currentPositionRead = parseFloat(hypoteneuse);
+  //console.log('proximalDirection', proximalDirection[1], 'metacarpalDirection', metacarpalDirection[1]);
+
+
+  angle2 = Math.atan2(-intermediateDirection[2], intermediateDirection[1]);
+  angle1 = Math.atan2(-metacarpalDirection[2], metacarpalDirection[1]);
+  if (angle2 < 0) {
+    angle2 = 2*3.1416 + angle2;
+  }
+  if (angle1 < 0) {
+    angle1 = 2*3.1416 + angle1;
+  }
+
+
+
+
+  // currentPositionRead = parseFloat((intermediateDirection[1] - metacarpalDirection[1])/(intermediateDirection[2] -metacarpalDirection[2]));
+  currentPositionRead = angle1 - angle2;
   lastTenPositions.push(currentPositionRead);
   fingerType = pointableType;
   if (lastTenPositions[9]) {
@@ -283,7 +317,7 @@ function readFingerPosition(pointableType, tipPositionY, handPositionY) {
   }
   var sum = lastTenPositions.reduce(function(a, b) { return a + b; });
   currentPosition = sum/lastTenPositions.length;
-  //console.log('currentPosition', currentPosition);
+  console.log('currentPosition', currentPosition);
   if (highestPoint && lowestPoint) {
     setHighestPoint();
     setLowestPoint();
@@ -310,35 +344,30 @@ function setLowestPoint() {
 }
 
 function checkForKeyDown() {
+  //console.log('checkForKeyDown', 'currentPosition', currentPosition, 'highestPoint', highestPoint);
   if (currentPosition <= highestPoint - triggerInterval) {
     readyForKeyDown = false;
     lowestPoint = currentPosition;
-    //console.log('KEYDOWN', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
     readyForKeyUp = true;
-    //console.log('readyForKeyUp');
+    console.log('readyForKeyUp');
   }
 }
 
 function checkForKeyUp() {
+  //console.log('checkForKeyUp', 'currentPosition', currentPosition, 'lowestPoint', lowestPoint);
   if (currentPosition >= lowestPoint + triggerInterval) {
-    //console.log('KEYUP', 'currentPosition', currentPosition, 'highestPoint', highestPoint, 'lowestPoint', lowestPoint);
-    console.log('t;ype', fingerType);
-    if (fingerType == 'Thumb') {
-      sendSpace();
-    }
-    else {
-      sendKey();
-    }
+    sendKey();
     reset();
   }
 }
 
 function reset() {
+  console.log('reset');
   readyForKeyUp = false;
   highestPoint = currentPosition;
   lowestPoint = currentPosition;
   readyForKeyDown = true;
-  //console.log('readyForKeyDown');
+  console.log('readyForKeyDown');
   //console.log('reset positinos highest', highestPoint, 'reset positions lowest', lowestPoint);
 }
 
@@ -347,24 +376,31 @@ function sendSpace() {
 }
 
 function sendKey() {
-  var positionLinear = (verticalRange[0] - lowestPoint)/verticalDistance;
-  var positionBracket = Math.floor(positionLinear * alphabet.length);
-  // console.log('highestPoint', highestPoint);
-  // console.log('lowestPoint', lowestPoint);
-  // console.log('keypress', alphabet[positionBracket]);
+  var positionRatio = (lowestPoint - verticalRange[0])/verticalDistance;
+  var positionBracket = Math.floor(positionRatio * alphabet.length);
+  console.log('highestPoint', highestPoint);
+  console.log('lowestPoint', lowestPoint);
+  console.log('positionRatio', positionRatio);
+  console.log('positionBracket', positionBracket);
+  console.log('keypress', alphabet[positionBracket]);
   if (alphabet[positionBracket]) {
     outputContainer.innerHTML = outputContainer.innerHTML + alphabet[positionBracket];  
   }
+  else {
+    outputContainer.innerHTML = outputContainer.innerHTML + " undefined ";   
+  }
+  sendSpace();
 }
 
 
 </script>
 </head>
 <body>
-<h1>Leap Motion JavaScript Sample</h1>
+<div id="content">
+</div>
 <div id="main">
-  <button id="pause" onclick="togglePause()">Pause</button>
-  <input type="checkbox" id="pauseOnGesture" onclick="pauseForGestures()">Pause on gesture</input>
+  <!-- <button id="pause" onclick="togglePause()">Pause</button>
+  <input type="checkbox" id="pauseOnGesture" onclick="pauseForGestures()">Pause on gesture</input> -->
   <h3>Frame data:</h3>
   <div id="frameData"></div>
   <div style="clear:both;"></div>
@@ -376,12 +412,6 @@ function sendKey() {
   <div style="clear:both;"></div>
   <h3>Gesture data:</h3>
   <div id="gestureData"></div>
-</div>
-<div id="typing">
-  <div id="output">
-  </div>
-  <div id="content">
-  </div>
 </div>
 </body>
 </html>
