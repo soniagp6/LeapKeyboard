@@ -264,9 +264,9 @@ function pauseForGestures() {
 
 var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
-var verticalRange = [-2.5, .3];
-var verticalDistance = verticalRange[1] - verticalRange[0];
-var triggerInterval = .1//(verticalDistance/alphabet.length)*10;
+var verticalRange = [-1.5, -5.5];
+var verticalDistance = Math.abs(verticalRange[1] - verticalRange[0]);
+var triggerInterval = .2//(verticalDistance/alphabet.length)*10;
 var highestPoint;
 var lowestPoint;
 var currentPosition;
@@ -296,20 +296,31 @@ function readFingerPosition(pointableType, metacarpalDirection, proximalDirectio
   //console.log('proximalDirection', proximalDirection[1], 'metacarpalDirection', metacarpalDirection[1]);
 
 
-  angle2 = Math.atan2(-intermediateDirection[2], intermediateDirection[1]);
   angle1 = Math.atan2(-metacarpalDirection[2], metacarpalDirection[1]);
-  if (angle2 < 0) {
-    angle2 = 2*3.1416 + angle2;
-  }
+  angle2 = Math.atan2(-intermediateDirection[2], intermediateDirection[1]);
+  angle3 = Math.atan2(-proximalDirection[2], proximalDirection[1]);
+
   if (angle1 < 0) {
     angle1 = 2*3.1416 + angle1;
   }
 
+  if (angle2 < 0) {
+    angle2 = 2*3.1416 + angle2;
+  }
 
+   if (angle3 < 0) {
+    angle3 = 2*3.1416 + angle3;
+  }
+
+
+
+  // console.log('angle1', angle1);
+  // console.log('angle2', angle2);
+  // console.log('angle3', angle3);
 
 
   // currentPositionRead = parseFloat((intermediateDirection[1] - metacarpalDirection[1])/(intermediateDirection[2] -metacarpalDirection[2]));
-  currentPositionRead = angle1 - angle2;
+  currentPositionRead = angle1 - angle2 - angle3;
   lastTenPositions.push(currentPositionRead);
   fingerType = pointableType;
   if (lastTenPositions[9]) {
@@ -368,7 +379,7 @@ function reset() {
   lowestPoint = currentPosition;
   readyForKeyDown = true;
   console.log('readyForKeyDown');
-  //console.log('reset positinos highest', highestPoint, 'reset positions lowest', lowestPoint);
+  console.log('reset positinos highest', highestPoint, 'reset positions lowest', lowestPoint);
 }
 
 function sendSpace() {
@@ -376,12 +387,13 @@ function sendSpace() {
 }
 
 function sendKey() {
-  var positionRatio = (lowestPoint - verticalRange[0])/verticalDistance;
+  var positionRatio = Math.abs((lowestPoint - verticalRange[0])/verticalDistance);
   var positionBracket = Math.floor(positionRatio * alphabet.length);
-  console.log('highestPoint', highestPoint);
+  console.log('verticalRange', verticalRange);
+  console.log('verticalDistance', verticalDistance);
   console.log('lowestPoint', lowestPoint);
   console.log('positionRatio', positionRatio);
-  console.log('positionBracket', positionBracket);
+  console.log('positionBracket', positionBracket);  
   console.log('keypress', alphabet[positionBracket]);
   if (alphabet[positionBracket]) {
     outputContainer.innerHTML = outputContainer.innerHTML + alphabet[positionBracket];  
